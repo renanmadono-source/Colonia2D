@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#05060d" />
+  <meta name="description" content="Colônia Aurora — um simulador de fazenda e colonização espacial 2D. Cultive, construa e colonize cinco mundos do sistema Aurora." />
+  <title>Colônia Aurora — Simulador de Colonização Espacial</title>
+  <link rel="stylesheet" href="./styles.css" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23070a16'/%3E%3Ccircle cx='32' cy='32' r='17' fill='none' stroke='%236ee7ff' stroke-width='3'/%3E%3Ccircle cx='32' cy='32' r='9' fill='%23b58cff'/%3E%3Ccircle cx='49' cy='21' r='4' fill='%236ee7ff'/%3E%3C/svg%3E" />
+</head>
+<body>
+  <div id="app">
+    <canvas id="game" aria-label="Mundo do jogo" role="img"></canvas>
+
+    <!-- TITLE -->
+    <section id="title-screen" class="screen">
+      <div class="title-grain"></div>
+      <div class="title-topline">
+        <div class="title-brand"><span class="brand-orbit"></span> COLÔNIA AURORA</div>
+        <div class="title-version">v1.0 · SISTEMA AURORA</div>
+      </div>
+
+      <div class="title-inner">
+        <div class="title-copy">
+          <div class="eyebrow"><span class="eyebrow-dot"></span> SIMULADOR DE COLONIZAÇÃO ESPACIAL</div>
+          <h1 class="logo">
+            <span>COLÔNIA</span>
+            <strong>AURORA</strong>
+          </h1>
+          <p class="tagline">Cultive o impossível. Construa um lar.<br />Expanda a humanidade entre as estrelas.</p>
+
+          <div class="title-actions">
+            <button id="btn-play" class="btn btn-primary" aria-label="Play">
+              <span class="btn-glyph">▶</span>
+              <span>JOGAR</span>
+            </button>
+            <button id="btn-continue" class="btn btn-ghost hidden">CONTINUAR</button>
+          </div>
+
+          <div class="title-hints">
+            <span><b>WASD</b> mover</span>
+            <span><b>E</b> interagir</span>
+            <span><b>B</b> construir</span>
+            <span><b>M</b> mapa estelar</span>
+          </div>
+        </div>
+
+        <div class="title-aside">
+          <div class="system-card">
+            <div class="card-kicker">SISTEMA AURORA <span class="live-dot"></span></div>
+            <div class="system-orbits" aria-hidden="true">
+              <span class="sys-planet p1"></span>
+              <span class="sys-planet p2"></span>
+              <span class="sys-planet p3"></span>
+              <span class="sys-planet p4"></span>
+              <span class="sys-planet p5"></span>
+            </div>
+            <div class="system-names">
+              <span>NIX</span><span>CINDER</span><span>VERDANT</span><span>FROST</span><span>AETHER</span>
+            </div>
+            <p>Cinco mundos. Uma civilização.<br />Sua história começa em Nix.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="title-footer">
+        <div class="footer-left"><span class="scan-dot"></span> LINK COM A COLÔNIA ESTÁVEL</div>
+        <div class="footer-right">COLONIZE · CULTIVE · EXPANDA</div>
+      </div>
+    </section>
+
+    <!-- HUD -->
+    <div id="hud" class="hidden">
+      <header id="topbar">
+        <div class="brand-block">
+          <div class="brand-mark" aria-hidden="true">
+            <span class="bm-ring"></span><span class="bm-core"></span>
+          </div>
+          <div class="brand-text">
+            <div class="brand-name">COLÔNIA AURORA</div>
+            <div class="brand-sub">
+              <span id="hud-planet">NIX</span>
+              <span class="sep">/</span>
+              <span id="hud-biome">Lua de gelo seco</span>
+              <span class="sep">/</span>
+              <span id="hud-day">DIA 1 · 08:00</span>
+            </div>
+          </div>
+        </div>
+
+        <div id="resource-bar" class="resource-bar"></div>
+
+        <nav class="top-actions" aria-label="Ações do jogo">
+          <button class="icon-btn" data-action="map" title="Mapa estelar (M)">
+            <span class="ib-icon" data-icon="orbit"></span><span class="ib-label">MAPA</span><kbd>M</kbd>
+          </button>
+          <button class="icon-btn" data-action="build" title="Construir (B)">
+            <span class="ib-icon" data-icon="hammer"></span><span class="ib-label">CONSTRUIR</span><kbd>B</kbd>
+          </button>
+          <button class="icon-btn compact" data-action="help" title="Ajuda (H)">
+            <span class="ib-icon" data-icon="help"></span>
+          </button>
+          <button class="icon-btn compact" data-action="sound" title="Som">
+            <span class="ib-icon" data-icon="sound"></span>
+          </button>
+          <button class="icon-btn compact" data-action="pause" title="Menu (Esc)">
+            <span class="ib-icon" data-icon="menu"></span>
+          </button>
+        </nav>
+      </header>
+
+      <section id="quest-panel" class="panel side-panel">
+        <div class="panel-head">
+          <span>DIRETRIZES</span>
+          <span class="panel-tag" id="quest-tag">0/0</span>
+        </div>
+        <div id="quest-list" class="quest-list"></div>
+      </section>
+
+      <section id="colony-panel" class="panel side-panel">
+        <div class="panel-head">
+          <span>COLÔNIA</span>
+          <span class="panel-tag" id="colony-status">ATIVA</span>
+        </div>
+        <div class="colony-main">
+          <div class="colony-stat">
+            <span class="cs-label">POPULAÇÃO</span>
+            <span class="cs-value"><b id="colony-pop">1</b><em id="colony-cap">/1</em></span>
+          </div>
+          <div class="colony-stat">
+            <span class="cs-label">FELICIDADE</span>
+            <span class="cs-value"><b id="colony-happy">80</b><em>%</em></span>
+          </div>
+        </div>
+        <div class="meter"><span id="happy-meter" style="width:80%"></span></div>
+        <div class="colony-sub">PRODUÇÃO / CICLO</div>
+        <div id="colony-production" class="production-list"></div>
+        <div class="colony-foot">
+          <span id="colony-buildings">1 estrutura</span>
+          <span id="colony-cycles">CICLO 0</span>
+        </div>
+      </section>
+
+      <div id="toasts" class="toasts" aria-live="polite"></div>
+
+      <div id="tile-tip" class="tile-tip hidden"></div>
+
+      <div id="action-hint" class="action-hint">
+        <span class="ah-key">E</span>
+        <span class="ah-icon" data-icon="hand"></span>
+        <span class="ah-text">Interagir</span>
+      </div>
+
+      <div id="seed-picker" class="seed-picker hidden"></div>
+
+      <div id="hotbar-wrap" class="hotbar-wrap">
+        <div class="hotbar-title">
+          <span>EQUIPAMENTO</span>
+          <span id="hotbar-context">ENXADA</span>
+        </div>
+        <div id="hotbar" class="hotbar" role="toolbar" aria-label="Ferramentas"></div>
+      </div>
+
+      <!-- Touch controls -->
+      <div id="touch-ui">
+        <div id="joystick" aria-label="Joystick virtual">
+          <div class="joystick-base"></div>
+          <div class="joystick-knob"></div>
+        </div>
+        <button id="touch-action" class="touch-action" aria-label="Interagir">E</button>
+      </div>
+    </div>
+
+    <!-- BUILD OVERLAY -->
+    <section id="build-screen" class="screen overlay hidden" aria-label="Menu de construção">
+      <div class="overlay-shell wide">
+        <header class="overlay-head">
+          <div>
+            <div class="overlay-kicker">PLANEJAMENTO DE BASE</div>
+            <h2>CONSTRUIR</h2>
+          </div>
+          <div class="overlay-head-right">
+            <span class="overlay-note">Selecione uma estrutura e clique no terreno</span>
+            <button class="btn btn-ghost small" data-close="build">FECHAR</button>
+          </div>
+        </header>
+        <div id="build-grid" class="build-grid"></div>
+        <footer class="overlay-foot">
+          <span id="build-footnote">Recursos são consumidos ao posicionar.</span>
+          <span class="overlay-key"><kbd>B</kbd> abrir · <kbd>ESC</kbd> fechar</span>
+        </footer>
+      </div>
+    </section>
+
+    <!-- MAP OVERLAY -->
+    <section id="map-screen" class="screen overlay hidden" aria-label="Mapa estelar">
+      <div class="overlay-shell map-shell">
+        <header class="overlay-head">
+          <div>
+            <div class="overlay-kicker">NAVEGAÇÃO INTERESTELAR</div>
+            <h2>SISTEMA AURORA</h2>
+          </div>
+          <div class="overlay-head-right">
+            <span id="map-colonies" class="overlay-note">1 / 5 COLONIZADOS</span>
+            <button class="btn btn-ghost small" data-close="map">FECHAR</button>
+          </div>
+        </header>
+        <div class="map-layout">
+          <div class="map-stage">
+            <canvas id="orbit-canvas"></canvas>
+            <div class="map-legend">
+              <span><i class="dot current"></i> ATUAL</span>
+              <span><i class="dot claimed"></i> COLONIZADO</span>
+              <span><i class="dot open"></i> DISPONÍVEL</span>
+            </div>
+          </div>
+          <aside id="map-side" class="map-side panel"></aside>
+        </div>
+        <footer class="overlay-foot map-foot">
+          <div id="planet-switch" class="planet-switch"></div>
+          <span class="overlay-note">Clique em um planeta para inspecionar</span>
+        </footer>
+      </div>
+      <div id="travel-screen" class="travel-screen hidden" aria-live="polite">
+        <div class="travel-card">
+          <div class="travel-kicker">DOBRA EM CURSO</div>
+          <div class="travel-dest" id="travel-dest">CINDER</div>
+          <div class="travel-bar"><span id="travel-progress"></span></div>
+          <div class="travel-sub">Preparando módulo de pouso…</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HELP OVERLAY -->
+    <section id="help-screen" class="screen overlay hidden" aria-label="Ajuda">
+      <div class="overlay-shell">
+        <header class="overlay-head">
+          <div>
+            <div class="overlay-kicker">MANUAL DA COLÔNIA</div>
+            <h2>COMO JOGAR</h2>
+          </div>
+          <button class="btn btn-ghost small" data-close="help">FECHAR</button>
+        </header>
+        <div class="help-grid">
+          <div class="help-card">
+            <h3>MOVIMENTO</h3>
+            <div class="key-row"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><span>ou setas</span></div>
+            <div class="key-row"><kbd>E</kbd><span>usar ferramenta / interagir</span></div>
+            <div class="key-row"><kbd>Q</kbd><span>trocar semente</span></div>
+            <div class="key-row"><kbd>1</kbd>–<kbd>6</kbd><span>selecionar ferramenta</span></div>
+          </div>
+          <div class="help-card">
+            <h3>COLÔNIA</h3>
+            <div class="key-row"><kbd>B</kbd><span>menu de construção</span></div>
+            <div class="key-row"><kbd>M</kbd><span>mapa do sistema</span></div>
+            <div class="key-row"><kbd>H</kbd><span>esta ajuda</span></div>
+            <div class="key-row"><kbd>ESC</kbd><span>pausa / fechar menu</span></div>
+          </div>
+          <div class="help-card wide">
+            <h3>O CICLO DA FRONTEIRA</h3>
+            <p>Prepare canteiros com a <b>enxada</b>, regue com o <b>regador</b> e plante <b>sementes</b>. Plantas maduras brilham — colha para obter comida, créditos e novas sementes.</p>
+            <p>Estruturas produzem recursos a cada ciclo. Habitats atraem <b>colonos</b>, que consomem água e comida, mas geram créditos. Mantenha a felicidade alta para produzir mais.</p>
+            <p>Colete <b>cristais</b>, <b>sucata</b>, <b>gelo</b> e <b>flora</b> pelo terreno. Pesquise no <b>laboratório</b> para desbloquear novos mundos. Em planetas virgens, construa um <b>farol de colonização</b> para reivindicar o território.</p>
+          </div>
+        </div>
+        <footer class="overlay-foot">
+          <span>Dica: clique em um tile próximo com a ferramenta certa para agir direto.</span>
+          <span class="overlay-key">AUTOSAVE ATIVO</span>
+        </footer>
+      </div>
+    </section>
+
+    <!-- PAUSE OVERLAY -->
+    <section id="pause-screen" class="screen overlay hidden" aria-label="Menu de pausa">
+      <div class="overlay-shell narrow">
+        <header class="overlay-head">
+          <div>
+            <div class="overlay-kicker">LINK EM ESPERA</div>
+            <h2>PAUSA</h2>
+          </div>
+          <button class="btn btn-ghost small" data-close="pause">RETOMAR</button>
+        </header>
+        <div class="pause-stats" id="pause-stats"></div>
+        <div class="pause-actions">
+          <button class="btn btn-primary" data-pause="resume">CONTINUAR EXPEDIÇÃO</button>
+          <button class="btn btn-ghost" data-pause="save">SALVAR AGORA</button>
+          <button class="btn btn-ghost" data-pause="help">AJUDA E CONTROLES</button>
+          <button class="btn btn-ghost" data-pause="sound">SOM: LIGADO</button>
+          <button class="btn btn-ghost" data-pause="title">VOLTAR AO TÍTULO</button>
+          <button class="btn btn-danger" data-pause="reset">NOVO JOGO</button>
+        </div>
+        <div class="pause-foot">O progresso é salvo automaticamente neste navegador.</div>
+      </div>
+    </section>
+
+    <div id="fade" class="fade"></div>
+  </div>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
